@@ -58,7 +58,60 @@ class MediaPipeVideoProcessor:
                 landmark_drawing_spec=landmark_specs,
                 connection_drawing_spec=mp_drawing.DrawingSpec(color=(0, 0, 255), thickness=2, circle_radius=2)
             )
+        
+        # Draws degrees at specified joints if calculate_angle is True    
+        if calculate_angle:
+            frame = self.draw_angle(frame, results)
+        
         return frame
+
+
+    def draw_angle(self, frame, results, joint_names=None):
+        """
+        Draws the angle at specified joints on the frame.
+        Args:
+            frame: The image frame.
+            results: The MediaPipe pose results.
+            joint_names: List of joint names to draw angles for (e.g., ["right_knee", "left_knee"]).
+        """
+        if joint_names is None:
+            joint_names = ["right_knee", "left_knee"]  # Default to knees
+
+        if not results.pose_landmarks:
+            return frame
+
+        landmarks = results.pose_landmarks.landmark
+        h, w = frame.shape[:2]
+        colors = {
+            "right_knee": (255, 0, 0),
+            "left_knee": (0, 0, 255),
+            # Add more colors for other joints if needed
+        }
+
+        for joint in joint_names:
+            try:
+                hip, knee, ankle = get_joint_coords(landmarks, joint)
+                angle = calculate_angle(hip, knee, ankle)
+                anatomical_angle = 180 - angle
+                knee_px = (
+                    int(landmarks[JOINTS[joint]["knee"]].x * w),
+                    int(landmarks[JOINTS[joint]["knee"]].y * h)
+                )
+                cv2.putText(
+                    frame,
+                    f"{int(anatomical_angle)}",
+                    knee_px,
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7,
+                    colors.get(joint, (0, 255, 0)),
+                    2,
+                    cv2.LINE_AA
+                )
+            except Exception:
+                pass  # Optionally log or print(e)
+        return frame
+
+
 
     def process_video(self, input_path: str, output_path: str, all_landmarks: bool = True, draw_skeleton: bool = True, calculate_angle = False):
         """
@@ -95,7 +148,7 @@ class MediaPipeVideoProcessor:
                 results = pose.process(rgb_frame)
 
                 if draw_skeleton:
-                    frame = self.draw_pose(frame, results, all_landmarks)
+                    frame = self.draw_pose(frame, results, all_landmarks, calculate_angle)
 
                 out.write(frame)
 

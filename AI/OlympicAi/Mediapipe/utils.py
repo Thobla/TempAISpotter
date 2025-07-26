@@ -36,14 +36,14 @@ def get_joint_coords(landmarks, joint_name):
 
 def calculate_angle(p1, p2, p3):
     """
-    Calculate the angle between three points in 3D (x, y, z) space.
+    Calculate the angle between three points in 2D (x, y) space.
     Args:
-        p1, p2, p3: Points in (x, y, z) format.
+        p1, p2, p3: Points in (x, y) format.
     Returns:
         Angle in degrees.
     """
-    a = np.array([p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]])
-    b = np.array([p3[0] - p2[0], p3[1] - p2[1], p3[2] - p2[2]])
+    a = np.array([p1[0] - p2[0], p1[1] - p2[1]])
+    b = np.array([p3[0] - p2[0], p3[1] - p2[1]])
     cosine_angle = np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
     # Clamp value to avoid numerical errors
     cosine_angle = np.clip(cosine_angle, -1.0, 1.0)
