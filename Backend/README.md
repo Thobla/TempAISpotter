@@ -20,5 +20,7 @@ Video class from Models/Video.cs, and methods to simulate the standard REST call
 Put).
 
 ### Controllers/VideoController.cs
-the VideoController is our API, at localhost:{port}/Video. We can Create, Get, Post, and Put.
+the VideoController is our API, at localhost:{port}/Video. We can Create, Get, Post, and Put. Using post 
+we can indeed upload a video to Video/, but we can not currently not change/remove it from the
+folder, only the mock database at Services/VideoService.cs.
 
