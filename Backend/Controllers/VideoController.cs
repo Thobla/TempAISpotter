@@ -3,12 +3,14 @@ namespace AI_spotter.Controllers;
 using AI_spotter.Models;
 using AI_spotter.Services;
 using Microsoft.AspNetCore.Mvc;
+using AI_spotter.PublicClasses;
 
 
 
 [ApiController]
 [Route("[controller]")]
 public class VideoController : ControllerBase{
+    UploadHandler handleHerVideo = new UploadHandler();
     public VideoController(){
     }
 
@@ -25,10 +27,20 @@ public class VideoController : ControllerBase{
         return video;
     }
 
+
+
+
+
     [HttpPost]
-    public IActionResult Create(Video video){
-        VideoService.Add(video);
-        return CreatedAtAction(nameof(Get), new {id = video.Id}, video);
+    public IActionResult Create(IFormFile video){
+        (bool IsSuccess, string response) videoResponse = handleHerVideo.Upload(video);
+        if (!videoResponse.IsSuccess){
+            return BadRequest(videoResponse.response);
+        }
+        Video returnedVideo = new Video(){Id = -1, Name = videoResponse.response, 
+                Path = Path.Combine(Path.Combine(Directory.GetCurrentDirectory(), "Videos"), videoResponse.response)};
+        VideoService.Add(returnedVideo);
+        return CreatedAtAction(nameof(Get), new { id = returnedVideo.Id }, returnedVideo);
     }
 
     [HttpPut("{id}")]
