@@ -8,10 +8,8 @@ import tempfile
 
 
 app = FastAPI()
-
 # Dictionary to store uploaded videos in memory (filename -> BytesIO buffer)
 video_store = {}
-
 
 
 # POST ----------------------------------------------------------------------
