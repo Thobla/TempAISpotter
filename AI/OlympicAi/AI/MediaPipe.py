@@ -4,7 +4,6 @@ import numpy as np
 import mediapipe as mp
 from AI.utils import *
 from mediapipe.python.solutions.pose import PoseLandmark
-from moviepy.editor import VideoFileClip
 
 
 
