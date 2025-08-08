@@ -1,5 +1,25 @@
 # Overview of files
 
+## Requirements
+### Conda
+Make sure you have conda installed, and running environment with python version 3.9.
+Later pythonversions may be incompatible with MediaPipe.
+Create a new conda environment with 'conda create -n {nameOfEnv} python=3.9 -y'
+Activate environment by first running 'source activate base' then 'conda activate {nameOfEnv}'
+
+### Necessary libraries
+
+To run this directory make sure to download/pip install the following libraries:
+
+1. MediaPipe
+    - Install this by running first 'pip install mediapipe ipykernel'
+    - then 'python -m ipykernel install --user --name=MediaPipe --display-name "Python (MediaPipe)"'
+2. OpenCV
+3. FastAPI
+4. NumPy
+5. Uvicorn
+
+
 ## AI folder
 
 ### MediaPipe.py
@@ -35,15 +55,6 @@ Potentially a temporary folder. Will be used to store videos for either training
 
 
 
-# Necessary libraries
-
-To run this directory make sure to download/pip install the following libraries:
-
-1. MediaPipe
-2. OpenCV
-3. FastAPI
-4. NumPy
-5. Uvicorn
 
 
 
