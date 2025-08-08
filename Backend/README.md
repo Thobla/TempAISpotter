@@ -16,11 +16,11 @@ string, and **name** as nullable string.
 
 ### Services/VideoService.cs
 the VideoService class works as a placeholder database. It has a list of videos as defined by the
-Video class from Models/Video.cs, and methods to simulate the standard REST calls (Create, Get, Post, and
-Put).
+Video class from Models/Video.cs, and methods to simulate the standard REST calls (Create, Get, Post,
+Put, and Delete).
 
 ### Controllers/VideoController.cs
-the VideoController is our API, at localhost:{port}/Video. We can Create, Get, Post, and Put. Using post 
-we can indeed upload a video to Video/, but we can not currently not change/remove it from the
+the VideoController is our API, at localhost:{port}/Video. We can Create, Get, Post, Put, and Delete. Using post 
+we can indeed upload a video to Video/, but we can not currently change/remove it from the
 folder, only the mock database at Services/VideoService.cs.
 
