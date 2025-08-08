@@ -114,11 +114,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/toggian/100Days500Hours/AI-spotter/AI-spotter.csproj",
+      "projectUniqueName": "/home/toggian/AI-spotter/Backend/AI-spotter.csproj",
       "projectName": "AI-spotter",
-      "projectPath": "/home/toggian/100Days500Hours/AI-spotter/AI-spotter.csproj",
+      "projectPath": "/home/toggian/AI-spotter/Backend/AI-spotter.csproj",
       "packagesPath": "/home/toggian/.nuget/packages/",
-      "outputPath": "/home/toggian/100Days500Hours/AI-spotter/obj/",
+      "outputPath": "/home/toggian/AI-spotter/Backend/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/toggian/.nuget/NuGet/NuGet.Config"
