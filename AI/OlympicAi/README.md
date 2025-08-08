@@ -43,4 +43,5 @@ To run this directory make sure to download/pip install the following libraries:
 2. OpenCV
 3. FastAPI
 4. NumPy
+5. Uvicorn
 
