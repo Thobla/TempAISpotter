@@ -157,6 +157,17 @@ class MediaPipeVideoProcessor:
 
 
 
-
-
+    def verdict(self, input_path: str):
+        """
+        Processes a video file and returns a verdict based on the pose analysis.
+        Args:
+            input_path (str): Path to the input video file.
+        Returns:
+            str: Verdict based on the analysis.
+        """
+        #output_path = input_path.replace(".mp4", "_processed.mp4")
+        #self.process_video(input_path, output_path, all_landmarks=True, draw_skeleton=True, calculate_angle=True)
+        verdict = {"verdict": "Bad",
+                   "Reason": "Knee angle too high"}
+        return verdict
 

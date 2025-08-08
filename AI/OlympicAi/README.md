@@ -45,3 +45,10 @@ To run this directory make sure to download/pip install the following libraries:
 4. NumPy
 5. Uvicorn
 
+
+
+# How to start FastAPI localhost
+
+Run the following command in powershell given that you have the necessary libraries. The following prompt is based on if you are in the "OlympicAI" folder:
+
+uvicorn backend.main:app --reload 

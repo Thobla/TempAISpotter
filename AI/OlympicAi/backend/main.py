@@ -81,6 +81,11 @@ async def process_in_memory(filename: str):
 
 
 
+@app.post("/verdict/")
+async def get_verdict(input_path: str):
+    return MediaPipeVideoProcessor.verdict(input_path)
+
+
 # GET ----------------------------------------------------------------------
 
 
