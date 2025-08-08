@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "W+/+AOdBZt0=",
+  "dgSpecHash": "Qx2DiDo/xOA=",
   "success": true,
-  "projectFilePath": "/home/toggian/100Days500Hours/AI-spotter/AI-spotter.csproj",
+  "projectFilePath": "/home/toggian/AI-spotter/Backend/AI-spotter.csproj",
   "expectedPackageFiles": [
     "/home/toggian/.nuget/packages/microsoft.aspnetcore.openapi/9.0.7/microsoft.aspnetcore.openapi.9.0.7.nupkg.sha512",
     "/home/toggian/.nuget/packages/microsoft.openapi/1.6.17/microsoft.openapi.1.6.17.nupkg.sha512",
