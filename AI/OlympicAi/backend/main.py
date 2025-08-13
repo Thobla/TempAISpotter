@@ -81,6 +81,24 @@ async def process_in_memory(filename: str):
 
 
 
+@app.post("/process_video/")
+async def process_video(file: UploadFile = File(...)):
+    # Save uploaded file to a temp file
+    with tempfile.NamedTemporaryFile(suffix=".mp4") as temp_in, \
+         tempfile.NamedTemporaryFile(suffix=".mp4") as temp_out:
+        temp_in.write(await file.read())
+        temp_in.flush()
+
+        # Process video
+        processor = MediaPipeVideoProcessor()
+        processor.process_video(temp_in.name, temp_out.name)
+
+        # Return processed video as a stream
+        temp_out.seek(0)
+        return StreamingResponse(BytesIO(temp_out.read()), media_type="video/mp4")
+
+
+
 @app.post("/verdict/")
 async def get_verdict(input_path: str):
     return MediaPipeVideoProcessor.verdict(input_path)

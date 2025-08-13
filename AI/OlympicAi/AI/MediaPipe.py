@@ -2,7 +2,7 @@ import os
 import cv2
 import numpy as np
 import mediapipe as mp
-from AI.utils import *
+from utils import *
 from mediapipe.python.solutions.pose import PoseLandmark
 
 
@@ -112,7 +112,11 @@ class MediaPipeVideoProcessor:
 
 
 
-    def process_video(self, input_path: str, output_path: str, all_landmarks: bool = True, draw_skeleton: bool = True, calculate_angle = False):
+
+    def process_video(self, input_path: str, output_path: str,
+                    all_landmarks: bool = True,
+                    draw_skeleton: bool = True,
+                    calculate_angle=False):
         """
         Loads a video, optionally adds MediaPipe pose skeleton to each frame, and saves the processed video.
         Args:
@@ -121,6 +125,12 @@ class MediaPipeVideoProcessor:
             all_landmarks (bool): Whether to draw all landmarks or exclude some.
             draw_skeleton (bool): Whether to draw the skeleton at all.
         """
+        # Ensure ProcessedVideos folder exists
+        os.makedirs("ProcessedVideos", exist_ok=True)
+
+        # Force output into ProcessedVideos folder
+        output_path = os.path.join("ProcessedVideos", os.path.basename(output_path))
+
         cap = cv2.VideoCapture(input_path)
         if not cap.isOpened():
             raise IOError(f"Cannot open video file: {input_path}")
@@ -129,14 +139,13 @@ class MediaPipeVideoProcessor:
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
 
-        fourcc = cv2.VideoWriter_fourcc(*'.avi')
+        fourcc = cv2.VideoWriter_fourcc(*'.avi')  # keep your original codec exactly
         out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
         if not out.isOpened():
             cap.release()
             raise IOError(f"Cannot open video writer for: {output_path}")
 
         mp_pose = mp.solutions.pose
-
         with mp_pose.Pose(static_image_mode=False) as pose:
             while True:
                 ret, frame = cap.read()
@@ -154,10 +163,12 @@ class MediaPipeVideoProcessor:
         cap.release()
         out.release()
         print(f"✅ Video processed and saved to {output_path}")
+        return output_path
 
 
 
-    def verdict(self, input_path: str):
+
+    def verdict(self):
         """
         Processes a video file and returns a verdict based on the pose analysis.
         Args:
