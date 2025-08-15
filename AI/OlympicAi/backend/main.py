@@ -2,7 +2,7 @@ import os
 from typing import Annotated
 from io import BytesIO
 from fastapi import FastAPI, File, UploadFile,  HTTPException
-from fastapi.responses import StreamingResponse, HTMLResponse, FileResponse
+from fastapi.responses import StreamingResponse, HTMLResponse, FileResponse, JSONResponse
 from AI.MediaPipe import MediaPipeVideoProcessor
 import tempfile
 
@@ -80,10 +80,10 @@ async def process_in_memory(filename: str):
     return StreamingResponse(processed_buffer, media_type="video/mp4")
 
 
-
-@app.post("/verdict/")
-async def get_verdict(input_path: str):
-    return MediaPipeVideoProcessor.verdict(input_path)
+@app.get("/verdict", response_class=JSONResponse)
+async def get_verdict(path: str):
+    processor = MediaPipeVideoProcessor()
+    return processor.verdict(path)
 
 
 # GET ----------------------------------------------------------------------

@@ -1,8 +1,9 @@
 using Scalar.AspNetCore;
+using AI_spotter.Controllers;
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHttpClient<IAiClientConnect, AiClientConnect>();
 // Add services to the container.
-
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

@@ -4,15 +4,49 @@ using AI_spotter.Models;
 using AI_spotter.Services;
 using Microsoft.AspNetCore.Mvc;
 using AI_spotter.PublicClasses;
+using System.Net.Http;
 
+public interface IAiClientConnect{
+    HttpClient AiClient {get;}
+    Task<HttpResponseMessage> Connect();
+}
 
+public class AiClientConnect : IAiClientConnect{
+    public HttpClient AiClient {get;}
+    public AiClientConnect(HttpClient client){
+        AiClient = client;
+    }
+//    public static async Task<VideoController> Create(){
+//        var controller = new VideoController();
+//        await controller.ConnectAiClient();
+//        return controller;
+//    }
+    public async Task<HttpResponseMessage> Connect(){
+        try{
+            using HttpResponseMessage response = await AiClient.GetAsync("http://localhost:8000/verdict?path=hello");
+            response.EnsureSuccessStatusCode();
+            string responseBody = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(responseBody);
+            return response;
+        }
+        catch (HttpRequestException e){
+            Console.WriteLine("\nException caught");
+            Console.WriteLine("Exception message: {0}", e.Message);
+            return new HttpResponseMessage(System.Net.HttpStatusCode.NoContent);
+        }
+    }
+}
 
 [ApiController]
 [Route("[controller]")]
 public class VideoController : ControllerBase{
+    private readonly IAiClientConnect AiClient;
     UploadHandler handleHerVideo = new UploadHandler();
-    public VideoController(){
+
+    public VideoController(IAiClientConnect aiClient){
+        AiClient = aiClient;
     }
+
 
     [HttpGet]
     public ActionResult<List<Video>> GetAll() => VideoService.GetAll();
@@ -27,35 +61,24 @@ public class VideoController : ControllerBase{
         return video;
     }
 
-
-
-    [HttpPut]
-    public IActionResult CreateVerdict(int id){
-        path = video.path;
-        // Call on FASTAPI, with path to video
-        // Await response
-        // Save JSONRESPONSE in database
-        // GET(response)
-        analyze.add(response)
-        return Success
+    [HttpGet("aiApi/{aiMethod}")]
+    public async Task<IActionResult> GetAI(string aiMethod){
+        try{
+            await AiClient.Connect();
+            HttpResponseMessage result = await AiClient.AiClient.GetAsync("http://localhost:8000/verdict?path=hello");
+            if (result.IsSuccessStatusCode){
+                Console.WriteLine("got results");
+                return Ok(result.Content.ReadAsStringAsync().Result);
+            }
+            else{
+                return StatusCode((int) result.StatusCode, result.ReasonPhrase);
+            }
+        }
+        catch (HttpRequestException e){
+            return (StatusCode(500, ("Internal Server Error {0}", e)));
+        }
     }
 
-    def make_verdict(path):
-        return "{verdict: bad}"
-
-    def process_video(video):
-        // ....
-        // ...
-        retrun response
-
-    def API_CALL(path):
-        verdict = make_verdict(path)
-        process_video()
-        retrun Response(header, verdict)
-
-
-    localhost/FastApi/PostVerdict{string path}
-        ->      retrun JSONRESPONSE {"verdict": "bad"}
 
 
     [HttpPost]
@@ -69,6 +92,7 @@ public class VideoController : ControllerBase{
         VideoService.Add(returnedVideo);
         return CreatedAtAction(nameof(Get), new { id = returnedVideo.Id }, returnedVideo);
     }
+    
 
 // Imagine we wont need to PUT a video, atlest not for now
 //    [HttpPut("{id}")]

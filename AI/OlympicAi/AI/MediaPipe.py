@@ -156,8 +156,7 @@ class MediaPipeVideoProcessor:
         print(f"✅ Video processed and saved to {output_path}")
 
 
-
-    def verdict(self, input_path: str):
+    def verdict(self, path:str):
         """
         Processes a video file and returns a verdict based on the pose analysis.
         Args:
@@ -167,7 +166,9 @@ class MediaPipeVideoProcessor:
         """
         #output_path = input_path.replace(".mp4", "_processed.mp4")
         #self.process_video(input_path, output_path, all_landmarks=True, draw_skeleton=True, calculate_angle=True)
-        verdict = {"verdict": "Bad",
+        verdict = {"video": "id",
+                   "path": path,
+                   "verdict": "Bad",
                    "Reason": "Knee angle too high"}
         return verdict
 
