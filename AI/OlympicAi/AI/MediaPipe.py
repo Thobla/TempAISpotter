@@ -1,4 +1,5 @@
 import os
+import time
 import cv2
 import numpy as np
 import mediapipe as mp
@@ -121,6 +122,8 @@ class MediaPipeVideoProcessor:
             all_landmarks (bool): Whether to draw all landmarks or exclude some.
             draw_skeleton (bool): Whether to draw the skeleton at all.
         """
+        print("inp_path", input_path)
+        print("out_path", output_path)
         cap = cv2.VideoCapture(input_path)
         if not cap.isOpened():
             raise IOError(f"Cannot open video file: {input_path}")
@@ -129,7 +132,7 @@ class MediaPipeVideoProcessor:
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
 
-        fourcc = cv2.VideoWriter_fourcc(*'.avi')
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
         out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
         if not out.isOpened():
             cap.release()
@@ -166,8 +169,11 @@ class MediaPipeVideoProcessor:
         """
         #output_path = input_path.replace(".mp4", "_processed.mp4")
         #self.process_video(input_path, output_path, all_landmarks=True, draw_skeleton=True, calculate_angle=True)
+        inp_path = "Backend/" + path
+        out_path = "Backend/" + path.replace(".mp4", "_processed.mp4")
+        path = self.process_video(inp_path, out_path)
         verdict = {"video": "id",
-                   "path": path,
+                   "path": out_path,
                    "verdict": "Bad",
                    "Reason": "Knee angle too high"}
         return verdict
