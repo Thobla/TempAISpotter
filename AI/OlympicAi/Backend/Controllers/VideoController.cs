@@ -96,6 +96,19 @@ public class VideoController : ControllerBase{
         VideoService.Add(returnedVideo);
         return CreatedAtAction(nameof(Get), new { id = returnedVideo.Id }, returnedVideo);
     }
+
+    [HttpPut("{id}")]
+    public IActionResult Update(IFormFile newVideo, int id){
+        Video? video = VideoService.Get(id);
+        if (video == null){
+            return NotFound();
+        }
+        (bool IsSuccess, string response) result = handleHerVideo.Upload(newVideo, video.Name);
+        if (!result.IsSuccess){
+            return BadRequest(result.response);
+        }
+        return CreatedAtAction(nameof(Get), new {id = id}, video);
+    }
     
     [HttpDelete("{id}")]
     public IActionResult Delete(int id){

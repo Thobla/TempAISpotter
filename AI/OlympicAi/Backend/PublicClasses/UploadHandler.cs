@@ -2,7 +2,7 @@ namespace AI_spotter.PublicClasses
 {
     public class UploadHandler{
 
-        public (bool IsSuccess, string Response) Upload(IFormFile video){
+        public (bool IsSuccess, string Response) Upload(IFormFile video, string? fileName = null){
             //extension
             List<string> validExtensions = new List<string>(){".mp4", ".gif"};
             string extension = Path.GetExtension(video.FileName);
@@ -16,10 +16,10 @@ namespace AI_spotter.PublicClasses
                 return ( false, $"Maximum file size is ({maxMegaBytes})");
             }
             //name changing
-            string fileName = Guid.NewGuid().ToString() + extension;
+            if (fileName == null){
+                fileName = Guid.NewGuid().ToString() + extension;
+            }
             string path = Path.Combine(Directory.GetCurrentDirectory(), "Videos");
-
-
 
             using FileStream stream = new FileStream(Path.Combine(path, fileName), FileMode.Create);
             video.CopyTo(stream);
