@@ -23,7 +23,7 @@ public class AiClientConnect : IAiClientConnect{
 //    }
     public async Task<HttpResponseMessage> Connect(string path){
         try{
-            using HttpResponseMessage response = await AiClient.GetAsync($"http://localhost:8000/verdict?path=Videos/{path}");
+            using HttpResponseMessage response = await AiClient.GetAsync($"http://localhost:8000/verdict?path={path}");
             response.EnsureSuccessStatusCode();
             string responseBody = await response.Content.ReadAsStringAsync();
             Console.WriteLine(responseBody);
@@ -61,11 +61,15 @@ public class VideoController : ControllerBase{
         return video;
     }
 
-    [HttpGet("aiApi/{aiMethod}/{path}")]
-    public async Task<IActionResult> GetAI(string aiMethod, string path){
+    [HttpGet("aiApi/{aiMethod}/{id}")]
+    public async Task<IActionResult> GetAI(string aiMethod, int id){
         try{
+            var path = VideoService.Get(id)?.Path;
+            if (path == null){
+                throw new NullReferenceException("id or path is null");
+            }
             await AiClient.Connect(path);
-            HttpResponseMessage result = await AiClient.AiClient.GetAsync($"http://localhost:8000/verdict?path=Videos/{path}");
+            HttpResponseMessage result = await AiClient.AiClient.GetAsync($"http://localhost:8000/verdict?path={path}");
             if (result.IsSuccessStatusCode){
                 Console.WriteLine("got results");
                 return Ok(result.Content.ReadAsStringAsync().Result);

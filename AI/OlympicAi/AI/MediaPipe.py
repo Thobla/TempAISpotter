@@ -169,8 +169,8 @@ class MediaPipeVideoProcessor:
         """
         #output_path = input_path.replace(".mp4", "_processed.mp4")
         #self.process_video(input_path, output_path, all_landmarks=True, draw_skeleton=True, calculate_angle=True)
-        inp_path = "Backend/" + path
-        out_path = "Backend/" + path.replace(".mp4", "_processed.mp4")
+        inp_path = path
+        out_path = path.replace(".mp4", "_processed.mp4")
         path = self.process_video(inp_path, out_path)
         verdict = {"video": "id",
                    "path": out_path,
