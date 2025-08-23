@@ -2,8 +2,10 @@ import os
 import cv2
 import numpy as np
 import mediapipe as mp
-from utils import *
+from Utils.utils.utils import *
 from mediapipe.python.solutions.pose import PoseLandmark
+from Utils.counters.exercise_counter import ExerciseCounter
+from Utils.counters.squat_counter import SquatCounter
 
 
 
@@ -116,7 +118,8 @@ class MediaPipeVideoProcessor:
     def process_video(self, input_path: str, output_path: str,
                     all_landmarks: bool = True,
                     draw_skeleton: bool = True,
-                    calculate_angle=False):
+                    calculate_angle=False,
+                    exercise: str = "squat"):
         """
         Loads a video, optionally adds MediaPipe pose skeleton to each frame, and saves the processed video.
         Args:
@@ -144,6 +147,13 @@ class MediaPipeVideoProcessor:
         if not out.isOpened():
             cap.release()
             raise IOError(f"Cannot open video writer for: {output_path}")
+        
+        
+        # ✅ choose exercise counter
+        if exercise == "squat":
+            counter = SquatCounter()
+        else:
+            raise NotImplementedError(f"Exercise '{exercise}' not implemented.")
 
         mp_pose = mp.solutions.pose
         with mp_pose.Pose(static_image_mode=False) as pose:
@@ -154,6 +164,10 @@ class MediaPipeVideoProcessor:
 
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 results = pose.process(rgb_frame)
+                
+                # ✅ add counter update here
+                if results.pose_landmarks:
+                    counter.update(results.pose_landmarks.landmark)
 
                 if draw_skeleton:
                     frame = self.draw_pose(frame, results, all_landmarks, calculate_angle)
@@ -162,13 +176,15 @@ class MediaPipeVideoProcessor:
 
         cap.release()
         out.release()
-        print(f"✅ Video processed and saved to {output_path}")
-        return output_path
+        print(f"Video processed and saved to {output_path}")
+        
+        # ✅ return verdict with counter results
+        return self.verdict(counter)
 
 
 
 
-    def verdict(self):
+    def verdict(self, counter):
         """
         Processes a video file and returns a verdict based on the pose analysis.
         Args:
@@ -180,5 +196,6 @@ class MediaPipeVideoProcessor:
         #self.process_video(input_path, output_path, all_landmarks=True, draw_skeleton=True, calculate_angle=True)
         verdict = {"verdict": "Bad",
                    "Reason": "Knee angle too high"}
-        return verdict
+        print("Verdict:", counter.get_results())
+        return counter.get_results()
 
