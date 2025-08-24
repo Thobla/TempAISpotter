@@ -181,7 +181,7 @@ class MediaPipeVideoProcessor:
         return self.verdict(output_path, counter)
 
 
-    def verdict(self, path:str, counter):
+    def verdict(self, out_path:str, counter):
         """
         Processes a video file and returns a verdict based on the pose analysis.
         Args:
@@ -191,9 +191,6 @@ class MediaPipeVideoProcessor:
         """
         #output_path = input_path.replace(".mp4", "_processed.mp4")
         #self.process_video(input_path, output_path, all_landmarks=True, draw_skeleton=True, calculate_angle=True)
-        inp_path = path
-        out_path = path.replace(".mp4", "_processed.mp4")
-        path = self.process_video(inp_path, out_path)
 
         result = counter.get_results()
         result["video"] = "id"

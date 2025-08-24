@@ -83,7 +83,7 @@ async def process_in_memory(filename: str):
 @app.get("/verdict", response_class=JSONResponse)
 async def get_verdict(path: str):
     processor = MediaPipeVideoProcessor()
-    return processor.verdict(path)
+    return processor.process_video(path, path)
 
 @app.post("/process_video/")
 async def process_video(file: UploadFile = File(...)):

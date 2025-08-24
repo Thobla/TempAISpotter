@@ -68,7 +68,7 @@ public class VideoController : ControllerBase{
             if (path == null){
                 throw new NullReferenceException("id or path is null");
             }
-            await AiClient.Connect(path);
+            //HttpResponseMessage result = await AiClient.Connect(path);
             HttpResponseMessage result = await AiClient.AiClient.GetAsync($"http://localhost:8000/verdict?path={path}");
             if (result.IsSuccessStatusCode){
                 Console.WriteLine("got results");
