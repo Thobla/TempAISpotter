@@ -3,8 +3,10 @@ import time
 import cv2
 import numpy as np
 import mediapipe as mp
-from AI.utils import *
+from Utils.utils.utils import *
 from mediapipe.python.solutions.pose import PoseLandmark
+from Utils.counters.exercise_counter import ExerciseCounter
+from Utils.counters.squat_counter import SquatCounter
 
 
 
@@ -113,7 +115,12 @@ class MediaPipeVideoProcessor:
 
 
 
-    def process_video(self, input_path: str, output_path: str, all_landmarks: bool = True, draw_skeleton: bool = True, calculate_angle = False):
+
+    def process_video(self, input_path: str, output_path: str,
+                    all_landmarks: bool = True,
+                    draw_skeleton: bool = True,
+                    calculate_angle=False,
+                    exercise: str = "squat"):
         """
         Loads a video, optionally adds MediaPipe pose skeleton to each frame, and saves the processed video.
         Args:
@@ -122,8 +129,12 @@ class MediaPipeVideoProcessor:
             all_landmarks (bool): Whether to draw all landmarks or exclude some.
             draw_skeleton (bool): Whether to draw the skeleton at all.
         """
-        print("inp_path", input_path)
-        print("out_path", output_path)
+        # Ensure ProcessedVideos folder exists
+        os.makedirs("ProcessedVideos", exist_ok=True)
+
+        # Force output into ProcessedVideos folder
+        output_path = os.path.join("ProcessedVideos", os.path.basename(output_path))
+
         cap = cv2.VideoCapture(input_path)
         if not cap.isOpened():
             raise IOError(f"Cannot open video file: {input_path}")
@@ -138,8 +149,13 @@ class MediaPipeVideoProcessor:
             cap.release()
             raise IOError(f"Cannot open video writer for: {output_path}")
 
-        mp_pose = mp.solutions.pose
+        # ✅ choose exercise counter
+        if exercise == "squat":
+            counter = SquatCounter()
+        else:
+            raise NotImplementedError(f"Exercise '{exercise}' not implemented.")
 
+        mp_pose = mp.solutions.pose
         with mp_pose.Pose(static_image_mode=False) as pose:
             while True:
                 ret, frame = cap.read()
@@ -148,6 +164,9 @@ class MediaPipeVideoProcessor:
 
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 results = pose.process(rgb_frame)
+                # ✅ add counter update here
+                if results.pose_landmarks:
+                    counter.update(results.pose_landmarks.landmark)
 
                 if draw_skeleton:
                     frame = self.draw_pose(frame, results, all_landmarks, calculate_angle)
@@ -156,10 +175,13 @@ class MediaPipeVideoProcessor:
 
         cap.release()
         out.release()
-        print(f"✅ Video processed and saved to {output_path}")
+        print(f"Video processed and saved to {output_path}")
+
+        # ✅ return verdict with counter results
+        return self.verdict(output_path, counter)
 
 
-    def verdict(self, path:str):
+    def verdict(self, path:str, counter):
         """
         Processes a video file and returns a verdict based on the pose analysis.
         Args:
@@ -172,9 +194,10 @@ class MediaPipeVideoProcessor:
         inp_path = path
         out_path = path.replace(".mp4", "_processed.mp4")
         path = self.process_video(inp_path, out_path)
-        verdict = {"video": "id",
-                   "path": out_path,
-                   "verdict": "Bad",
-                   "Reason": "Knee angle too high"}
-        return verdict
+
+        result = counter.get_results()
+        result["video"] = "id"
+        result["path"] = out_path
+        print("Verdict:", counter.get_results())
+        return result
 
