@@ -5,22 +5,18 @@ using AI_spotter.Services;
 using Microsoft.AspNetCore.Mvc;
 using AI_spotter.PublicClasses;
 using System.Net.Http;
+using System.IO; // ← for Path / Directory
 
 public interface IAiClientConnect{
-    HttpClient AiClient {get;}
+    HttpClient AiClient { get; }
     Task<HttpResponseMessage> Connect(string path);
 }
 
 public class AiClientConnect : IAiClientConnect{
-    public HttpClient AiClient {get;}
+    public HttpClient AiClient { get; }
     public AiClientConnect(HttpClient client){
         AiClient = client;
     }
-//    public static async Task<VideoController> Create(){
-//        var controller = new VideoController();
-//        await controller.ConnectAiClient();
-//        return controller;
-//    }
     public async Task<HttpResponseMessage> Connect(string path){
         try{
             using HttpResponseMessage response = await AiClient.GetAsync($"http://localhost:8000/verdict?path={path}");
@@ -41,23 +37,19 @@ public class AiClientConnect : IAiClientConnect{
 [Route("[controller]")]
 public class VideoController : ControllerBase{
     private readonly IAiClientConnect AiClient;
-    UploadHandler handleHerVideo = new UploadHandler();
+    private readonly UploadHandler handleHerVideo = new UploadHandler();
 
     public VideoController(IAiClientConnect aiClient){
         AiClient = aiClient;
     }
 
-
     [HttpGet]
     public ActionResult<List<Video>> GetAll() => VideoService.GetAll();
-
 
     [HttpGet("{id}")]
     public ActionResult<Video> Get(int id){
         var video = VideoService.Get(id);
-        if (video == null){
-            return NotFound();
-        }
+        if (video == null) return NotFound();
         return video;
     }
 
@@ -65,57 +57,72 @@ public class VideoController : ControllerBase{
     public async Task<IActionResult> GetAI(string aiMethod, int id){
         try{
             var path = VideoService.Get(id)?.Path;
-            if (path == null){
-                throw new NullReferenceException("id or path is null");
-            }
-            //HttpResponseMessage result = await AiClient.Connect(path);
+            if (path == null) throw new NullReferenceException("id or path is null");
+
+            // HttpResponseMessage result = await AiClient.Connect(path);
             HttpResponseMessage result = await AiClient.AiClient.GetAsync($"http://localhost:8000/verdict?path={path}");
             if (result.IsSuccessStatusCode){
                 Console.WriteLine("got results");
-                return Ok(result.Content.ReadAsStringAsync().Result);
+                return Ok(await result.Content.ReadAsStringAsync());
             }
-            else{
-                return StatusCode((int) result.StatusCode, result.ReasonPhrase);
-            }
+            return StatusCode((int)result.StatusCode, result.ReasonPhrase);
         }
         catch (HttpRequestException e){
-            return (StatusCode(500, ("Internal Server Error {0}", e)));
+            return StatusCode(500, $"Internal Server Error: {e.Message}");
         }
     }
 
-
+    // ---- CREATE -------------------------------------------------------------
 
     [HttpPost]
-    public IActionResult Create(IFormFile video){
-        (bool IsSuccess, string response) videoResponse = handleHerVideo.Upload(video);
-        if (!videoResponse.IsSuccess){
-            return BadRequest(videoResponse.response);
-        }
-        Video returnedVideo = new Video(){Id = -1, Name = videoResponse.response, 
-                Path = Path.Combine(Path.Combine(Directory.GetCurrentDirectory(), "Videos"), videoResponse.response)};
+    [Consumes("multipart/form-data")]
+    public IActionResult Create([FromForm] IFormFile video){
+        var videoResponse = handleHerVideo.Upload(video);
+        if (!videoResponse.IsSuccess) return BadRequest(videoResponse.Response);
+
+        var storedName = videoResponse.Response; // GUID.ext saved on disk
+        var fullPath   = Path.Combine(Directory.GetCurrentDirectory(), "Videos", storedName);
+
+        var returnedVideo = new Video{
+            Id = -1,
+            Name = storedName,             // stored filename used for serving
+            OriginalName = video.FileName, // pretty/original filename
+            Path = fullPath
+        };
+
         VideoService.Add(returnedVideo);
         return CreatedAtAction(nameof(Get), new { id = returnedVideo.Id }, returnedVideo);
     }
 
+    // ---- UPDATE (overwrite file; keep or update OriginalName) ---------------
+
     [HttpPut("{id}")]
-    public IActionResult Update(IFormFile newVideo, int id){
-        Video? video = VideoService.Get(id);
-        if (video == null){
-            return NotFound();
-        }
-        (bool IsSuccess, string response) result = handleHerVideo.Upload(newVideo, video.Name);
-        if (!result.IsSuccess){
-            return BadRequest(result.response);
-        }
-        return CreatedAtAction(nameof(Get), new {id = id}, video);
+    [Consumes("multipart/form-data")]
+    public IActionResult Update([FromForm] IFormFile newVideo, int id){
+        var existing = VideoService.Get(id);
+        if (existing == null) return NotFound();
+
+        // Overwrite the SAME stored file name on disk
+        var result = handleHerVideo.Upload(newVideo, existing.Name);
+        if (!result.IsSuccess) return BadRequest(result.Response);
+
+        // Option A: keep previous OriginalName (do nothing)
+        // Option B: update to new uploaded filename:
+        // existing.OriginalName = newVideo.FileName;
+
+        // Path unchanged (same stored name)
+        VideoService.Update(existing);
+
+        return CreatedAtAction(nameof(Get), new { id = existing.Id }, existing);
     }
-    
+
+    // ---- DELETE -------------------------------------------------------------
+
     [HttpDelete("{id}")]
     public IActionResult Delete(int id){
-        Video? video = VideoService.Get(id);
-        if (video is null){
-            return NotFound();
-        }
+        var video = VideoService.Get(id);
+        if (video is null) return NotFound();
+
         if (System.IO.File.Exists(video.Path)){
             System.IO.File.Delete(video.Path);
             VideoService.Delete(id);
