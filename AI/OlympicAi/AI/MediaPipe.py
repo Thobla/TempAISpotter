@@ -156,7 +156,14 @@ class MediaPipeVideoProcessor:
             raise NotImplementedError(f"Exercise '{exercise}' not implemented.")
 
         mp_pose = mp.solutions.pose
-        with mp_pose.Pose(static_image_mode=False) as pose:
+        with mp_pose.Pose(
+            static_image_mode=False,         # Use tracking across frames
+            model_complexity=2,              # Use the most accurate model
+            enable_segmentation=False,       # Skip segmentation unless needed
+            min_detection_confidence=0.7,    # Only accept decent detections
+            min_tracking_confidence=0.7      # Only track when confident
+        ) as pose:
+            
             while True:
                 ret, frame = cap.read()
                 if not ret:
