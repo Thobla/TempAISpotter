@@ -5,6 +5,7 @@ using AI_spotter.Services;
 using Microsoft.AspNetCore.Mvc;
 using AI_spotter.PublicClasses;
 using System.Net.Http;
+using System.Text.Json;
 
 public interface IAiClientConnect{
     HttpClient AiClient {get;}
@@ -71,7 +72,6 @@ public class VideoController : ControllerBase{
             //HttpResponseMessage result = await AiClient.Connect(path);
             HttpResponseMessage result = await AiClient.AiClient.GetAsync($"http://localhost:8000/verdict?path={path}");
             if (result.IsSuccessStatusCode){
-                Console.WriteLine("got results");
                 return Ok(result.Content.ReadAsStringAsync().Result);
             }
             else{
@@ -82,8 +82,6 @@ public class VideoController : ControllerBase{
             return (StatusCode(500, ("Internal Server Error {0}", e)));
         }
     }
-
-
 
     [HttpPost]
     public IActionResult Create(IFormFile video){
@@ -122,5 +120,51 @@ public class VideoController : ControllerBase{
             return NoContent();
         }
         return StatusCode(500);
+    }
+
+    [HttpDelete("{path}")]
+    public IActionResult DeletePath(string path){
+        path = System.IO.Directory.GetParent(System.IO.Directory.GetCurrentDirectory()) + "/" + path;
+        if (System.IO.File.Exists(path)){
+            System.IO.File.Delete(path);
+            return NoContent();
+        }
+        return StatusCode(500);
+    }
+
+    [HttpPost("upload")]
+    public async Task<IActionResult> UploadAndVerdict(IFormFile video){
+        // 1. Upload the video
+        var upload = this.Create(video) as ObjectResult;
+        // Ensure the upload was a success
+        if (upload?.StatusCode != 201){
+            return StatusCode(upload?.StatusCode ?? 500);
+        }
+        Video? videoReference = (Video?)upload.Value;
+        if (videoReference == null){
+            return StatusCode(500);
+        }
+        // 2. Retrieve verdict
+        var verdict = await this.GetAI("", videoReference.Id) as ObjectResult;
+        if (verdict?.StatusCode != 200){
+            return StatusCode(verdict?.StatusCode ?? 500);
+        }
+        // 3. Delete video
+        if (verdict?.Value != null){
+            JsonDocument doc = JsonDocument.Parse((String) verdict.Value);
+            JsonElement root = doc.RootElement;
+            string path = root.GetProperty("path").GetString() ?? ""; // Access the "path" property
+            // Delete processed video
+            var delete = this.DeletePath(path) as NoContentResult;
+            if (delete == null){
+                return StatusCode(500);
+            }
+            // Delete original video
+            delete = this.Delete(videoReference.Id) as NoContentResult;
+            if (delete == null){
+                return StatusCode(500);
+            }
+        }
+        return verdict?.Value != null ? Ok(verdict.Value) : StatusCode(500);
     }
 }
