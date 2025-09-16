@@ -5,18 +5,23 @@ using AI_spotter.Services;
 using Microsoft.AspNetCore.Mvc;
 using AI_spotter.PublicClasses;
 using System.Net.Http;
-using System.IO; // ← for Path / Directory
+using System.Text.Json;
 
 public interface IAiClientConnect{
-    HttpClient AiClient { get; }
+    HttpClient AiClient {get;}
     Task<HttpResponseMessage> Connect(string path);
 }
 
 public class AiClientConnect : IAiClientConnect{
-    public HttpClient AiClient { get; }
+    public HttpClient AiClient {get;}
     public AiClientConnect(HttpClient client){
         AiClient = client;
     }
+//    public static async Task<VideoController> Create(){
+//        var controller = new VideoController();
+//        await controller.ConnectAiClient();
+//        return controller;
+//    }
     public async Task<HttpResponseMessage> Connect(string path){
         try{
             using HttpResponseMessage response = await AiClient.GetAsync($"http://localhost:8000/verdict?path={path}");
@@ -37,19 +42,23 @@ public class AiClientConnect : IAiClientConnect{
 [Route("[controller]")]
 public class VideoController : ControllerBase{
     private readonly IAiClientConnect AiClient;
-    private readonly UploadHandler handleHerVideo = new UploadHandler();
+    UploadHandler handleHerVideo = new UploadHandler();
 
     public VideoController(IAiClientConnect aiClient){
         AiClient = aiClient;
     }
 
+
     [HttpGet]
     public ActionResult<List<Video>> GetAll() => VideoService.GetAll();
+
 
     [HttpGet("{id}")]
     public ActionResult<Video> Get(int id){
         var video = VideoService.Get(id);
-        if (video == null) return NotFound();
+        if (video == null){
+            return NotFound();
+        }
         return video;
     }
 
@@ -57,77 +66,105 @@ public class VideoController : ControllerBase{
     public async Task<IActionResult> GetAI(string aiMethod, int id){
         try{
             var path = VideoService.Get(id)?.Path;
-            if (path == null) throw new NullReferenceException("id or path is null");
-
-            // HttpResponseMessage result = await AiClient.Connect(path);
+            if (path == null){
+                throw new NullReferenceException("id or path is null");
+            }
+            //HttpResponseMessage result = await AiClient.Connect(path);
             HttpResponseMessage result = await AiClient.AiClient.GetAsync($"http://localhost:8000/verdict?path={path}");
             if (result.IsSuccessStatusCode){
-                Console.WriteLine("got results");
-                return Ok(await result.Content.ReadAsStringAsync());
+                return Ok(result.Content.ReadAsStringAsync().Result);
             }
-            return StatusCode((int)result.StatusCode, result.ReasonPhrase);
+            else{
+                return StatusCode((int) result.StatusCode, result.ReasonPhrase);
+            }
         }
         catch (HttpRequestException e){
-            return StatusCode(500, $"Internal Server Error: {e.Message}");
+            return (StatusCode(500, ("Internal Server Error {0}", e)));
         }
     }
 
-    // ---- CREATE -------------------------------------------------------------
-
     [HttpPost]
-    [Consumes("multipart/form-data")]
-    public IActionResult Create([FromForm] IFormFile video){
-        var videoResponse = handleHerVideo.Upload(video);
-        if (!videoResponse.IsSuccess) return BadRequest(videoResponse.Response);
-
-        var storedName = videoResponse.Response; // GUID.ext saved on disk
-        var fullPath   = Path.Combine(Directory.GetCurrentDirectory(), "Videos", storedName);
-
-        var returnedVideo = new Video{
-            Id = -1,
-            Name = storedName,             // stored filename used for serving
-            OriginalName = video.FileName, // pretty/original filename
-            Path = fullPath
-        };
-
+    public IActionResult Create(IFormFile video){
+        (bool IsSuccess, string response) videoResponse = handleHerVideo.Upload(video);
+        if (!videoResponse.IsSuccess){
+            return BadRequest(videoResponse.response);
+        }
+        Video returnedVideo = new Video(){Id = -1, Name = videoResponse.response, 
+                Path = Path.Combine(Path.Combine(Directory.GetCurrentDirectory(), "Videos"), videoResponse.response)};
         VideoService.Add(returnedVideo);
         return CreatedAtAction(nameof(Get), new { id = returnedVideo.Id }, returnedVideo);
     }
 
-    // ---- UPDATE (overwrite file; keep or update OriginalName) ---------------
-
     [HttpPut("{id}")]
-    [Consumes("multipart/form-data")]
-    public IActionResult Update([FromForm] IFormFile newVideo, int id){
-        var existing = VideoService.Get(id);
-        if (existing == null) return NotFound();
-
-        // Overwrite the SAME stored file name on disk
-        var result = handleHerVideo.Upload(newVideo, existing.Name);
-        if (!result.IsSuccess) return BadRequest(result.Response);
-
-        // Option A: keep previous OriginalName (do nothing)
-        // Option B: update to new uploaded filename:
-        // existing.OriginalName = newVideo.FileName;
-
-        // Path unchanged (same stored name)
-        VideoService.Update(existing);
-
-        return CreatedAtAction(nameof(Get), new { id = existing.Id }, existing);
+    public IActionResult Update(IFormFile newVideo, int id){
+        Video? video = VideoService.Get(id);
+        if (video == null){
+            return NotFound();
+        }
+        (bool IsSuccess, string response) result = handleHerVideo.Upload(newVideo, video.Name);
+        if (!result.IsSuccess){
+            return BadRequest(result.response);
+        }
+        return CreatedAtAction(nameof(Get), new {id = id}, video);
     }
-
-    // ---- DELETE -------------------------------------------------------------
-
+    
     [HttpDelete("{id}")]
     public IActionResult Delete(int id){
-        var video = VideoService.Get(id);
-        if (video is null) return NotFound();
-
+        Video? video = VideoService.Get(id);
+        if (video is null){
+            return NotFound();
+        }
         if (System.IO.File.Exists(video.Path)){
             System.IO.File.Delete(video.Path);
             VideoService.Delete(id);
             return NoContent();
         }
         return StatusCode(500);
+    }
+
+    [HttpDelete("path/{path}")]
+    public IActionResult DeletePath(string path){
+        path = System.IO.Directory.GetParent(System.IO.Directory.GetCurrentDirectory()) + "/" + path;
+        if (System.IO.File.Exists(path)){
+            System.IO.File.Delete(path);
+            return NoContent();
+        }
+        return StatusCode(500);
+    }
+
+    [HttpPost("upload")]
+    public async Task<IActionResult> UploadAndVerdict(IFormFile video){
+        // 1. Upload the video
+        var upload = this.Create(video) as ObjectResult;
+        // Ensure the upload was a success
+        if (upload?.StatusCode != 201){
+            return StatusCode(upload?.StatusCode ?? 500);
+        }
+        Video? videoReference = (Video?)upload.Value;
+        if (videoReference == null){
+            return StatusCode(500);
+        }
+        // 2. Retrieve verdict
+        var verdict = await this.GetAI("", videoReference.Id) as ObjectResult;
+        if (verdict?.StatusCode != 200){
+            return StatusCode(verdict?.StatusCode ?? 500);
+        }
+        // 3. Delete video
+        if (verdict?.Value != null){
+            JsonDocument doc = JsonDocument.Parse((String) verdict.Value);
+            JsonElement root = doc.RootElement;
+            string path = root.GetProperty("path").GetString() ?? ""; // Access the "path" property
+            // Delete processed video
+            var delete = this.DeletePath(path) as NoContentResult;
+            if (delete == null){
+                return StatusCode(500);
+            }
+            // Delete original video
+            delete = this.Delete(videoReference.Id) as NoContentResult;
+            if (delete == null){
+                return StatusCode(500);
+            }
+        }
+        return verdict?.Value != null ? Ok(verdict.Value) : StatusCode(500);
     }
 }

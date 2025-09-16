@@ -8,7 +8,6 @@ class SquatCounter(ExerciseCounter):
         self.state = "up"   # up or down
 
     def update(self, landmarks):
-        print("Updating squat counter... ", self.total_reps)
         try:
             hip, knee, ankle = get_joint_coords(landmarks, "right_knee")
             angle = calculate_angle(hip, knee, ankle)
@@ -16,12 +15,17 @@ class SquatCounter(ExerciseCounter):
 
             if self.state == "up" and anatomical_angle <= self.min_angle:
                 self.state = "down"
+                self.lowest_angle = anatomical_angle
 
             elif self.state == "down" and anatomical_angle > self.min_angle:
                 # Completed one rep
                 self.total_reps += 1
-                self.valid_reps += 1   # TODO: add form checks for invalid reps
+                if self.lowest_angle <= self.min_angle:
+                    self.valid_reps += 1
+                else:
+                    self.invalid_reps += 1
                 self.state = "up"
+                print("lowest angle:", self.lowest_angle)
 
         except Exception:
             pass
