@@ -1,0 +1,67 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  font-family: system-ui, sans-serif;
+  background: #1e1e1e;
+  color: #f0f0f0;
+  padding: 2rem;
+}
+
+.title {
+  margin-bottom: 2rem;
+}
+
+.card {
+  border: 1px solid #444;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 12px;
+  margin-bottom: 3rem;
+}
+
+
+.uploadInfo {
+  margin-bottom: 1rem;
+}
+
+.button {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: #444;
+  color: #fff;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.video {
+  max-width: 100%;    /* shrink if screen is small */
+  max-height: 60vh;   /* keep video from exceeding 60% of viewport height */
+  border-radius: 8px;
+}
+
+
+.verdictBox {
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #2a2a2a;
+  max-width: 600px;
+  text-align: center;
+}
+
+.verdictPre {
+  background: #1a1a1a;
+  padding: 12px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+}
+

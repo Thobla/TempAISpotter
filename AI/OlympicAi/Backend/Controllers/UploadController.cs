@@ -13,5 +13,3 @@ public class UploadController : ControllerBase{
         return Ok(new UploadHandler().Upload(video));
     }
 }
-
-

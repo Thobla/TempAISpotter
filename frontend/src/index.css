@@ -1,0 +1,19 @@
+/* Keep this file imported in main.tsx */
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;                 /* ← removes the default left/right gap */
+  background: #1e1e1e;
+  color: #f0f0f0;
+  font-family: system-ui, sans-serif;
+}
+
+/* Optional: center the root horizontally */
+#root {
+  display: flex;
+  justify-content: center;   /* horizontal centering */
+}
