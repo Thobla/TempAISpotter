@@ -10,13 +10,18 @@ type Video = {
 
 export default function App() {
     const [video, setVideo] = useState<Video | null>(null);
+    const [videoUrl, setVideoUrl] = useState<string>();
     const [verdict, setVerdict] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
 
+
+
     async function handleUploadEl(input: HTMLInputElement) {
         const file = input.files?.[0];
         if (!file) return;
+        const fileUrl = URL.createObjectURL(file);
+        setVideoUrl(fileUrl);
 
         const fd = new FormData();
         fd.append("video", file);
@@ -39,15 +44,29 @@ export default function App() {
     }
 
     async function handleAnalysis() {
-        if (!video) return;
         try {
             setBusy(true);
             setError(null);
 
-            const res = await fetch(`/Video/aiApi/squat/${video.id}`);
-            if (!res.ok) throw new Error(await res.text());
-            const text = await res.text();
-            setVerdict(text);
+            if (videoUrl){
+                const vidRes = await fetch(videoUrl);
+                if (!vidRes.ok){
+                    throw new Error("Video could not be fetched");
+                }
+                const vidBlob = await vidRes.blob();
+
+                const formData = new FormData();
+                formData.append('video', vidBlob, 'video.mp4');
+
+                const res = await fetch(`/Video/upload`, { method: "POST", body: formData });
+                if (!res.ok) throw new Error(await res.text());
+                const text = await res.text();
+                setVerdict(text);
+            }
+            else{
+                throw new Error("No video is selected");
+            }
+
         } catch (err: any) {
             setError(err.message ?? String(err));
         } finally {
@@ -88,7 +107,7 @@ export default function App() {
                         <div style={{ marginTop: 12 }}>
                             <video
                                 controls
-                                src={`/videos/${video.name}`}
+                                src={videoUrl}
                                 className={styles.video}
                             />
                         </div>
