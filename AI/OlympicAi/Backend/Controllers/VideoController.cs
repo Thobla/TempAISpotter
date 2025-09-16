@@ -122,7 +122,7 @@ public class VideoController : ControllerBase{
         return StatusCode(500);
     }
 
-    [HttpDelete("{path}")]
+    [HttpDelete("path/{path}")]
     public IActionResult DeletePath(string path){
         path = System.IO.Directory.GetParent(System.IO.Directory.GetCurrentDirectory()) + "/" + path;
         if (System.IO.File.Exists(path)){
