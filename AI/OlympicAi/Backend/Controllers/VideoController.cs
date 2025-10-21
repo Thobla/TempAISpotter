@@ -24,10 +24,11 @@ public class AiClientConnect : IAiClientConnect{
 //    }
     public async Task<HttpResponseMessage> Connect(string path){
         try{
-            using HttpResponseMessage response = await AiClient.GetAsync($"http://localhost:8000/verdict?path={path}");
+            HttpResponseMessage response = await AiClient.GetAsync($"http://localhost:8000/verdict?path={path}");
             response.EnsureSuccessStatusCode();
             string responseBody = await response.Content.ReadAsStringAsync();
             Console.WriteLine(responseBody);
+            Console.WriteLine(response.IsSuccessStatusCode);
             return response;
         }
         catch (HttpRequestException e){
@@ -70,7 +71,8 @@ public class VideoController : ControllerBase{
                 throw new NullReferenceException("id or path is null");
             }
             //HttpResponseMessage result = await AiClient.Connect(path);
-            HttpResponseMessage result = await AiClient.AiClient.GetAsync($"http://localhost:8000/verdict?path={path}");
+            //
+            HttpResponseMessage result = await AiClient.Connect(path);
             if (result.IsSuccessStatusCode){
                 return Ok(result.Content.ReadAsStringAsync().Result);
             }
@@ -135,18 +137,23 @@ public class VideoController : ControllerBase{
     [HttpPost("upload")]
     public async Task<IActionResult> UploadAndVerdict(IFormFile video){
         // 1. Upload the video
+        Console.WriteLine("1");
         var upload = this.Create(video) as ObjectResult;
+        Console.WriteLine("2");
         // Ensure the upload was a success
         if (upload?.StatusCode != 201){
             return StatusCode(upload?.StatusCode ?? 500);
         }
+        Console.WriteLine("3");
         Video? videoReference = (Video?)upload.Value;
         if (videoReference == null){
             return StatusCode(500);
         }
+        Console.WriteLine("4");
         // 2. Retrieve verdict
         var verdict = await this.GetAI("", videoReference.Id) as ObjectResult;
         if (verdict?.StatusCode != 200){
+            Console.WriteLine("5");
             return StatusCode(verdict?.StatusCode ?? 500);
         }
         // 3. Delete video
