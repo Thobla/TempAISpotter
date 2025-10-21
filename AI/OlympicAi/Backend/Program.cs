@@ -1,6 +1,19 @@
 using Scalar.AspNetCore;
 using AI_spotter.Controllers;
+using Microsoft.AspNetCore.Http.Features;
 var builder = WebApplication.CreateBuilder(args);
+
+// Increase the max size of body
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 100 * 1024 * 1024; // Set limit to 100 MB
+});
+
+// also increases the max size of body
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 100 * 1024 * 1024; // Set limit to 100 MB
+});
 
 builder.Services.AddHttpClient<IAiClientConnect, AiClientConnect>();
 // Add services to the container.
@@ -17,7 +30,8 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
+
 
 // app.UseAuthorization();
 
