@@ -11,7 +11,7 @@ namespace AI_spotter.PublicClasses
             }
             //Filesize
             long size = video.Length;
-            long maxMegaBytes = 100;
+            long maxMegaBytes = 1000;
             if (size > (maxMegaBytes * 1024 * 1024)){
                 return ( false, $"Maximum file size is ({maxMegaBytes})");
             }
