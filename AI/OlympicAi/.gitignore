@@ -1,4 +1,4 @@
 videos/
 ProcessedVideos/
 AI/MediaPipe_landmarks/*
-AI/PoseFormerV2/Checkpoints/
+AI/PoseFormerV2/Checkpoints/*
