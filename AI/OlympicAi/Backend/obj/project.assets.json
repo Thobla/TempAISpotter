@@ -109,19 +109,19 @@
     ]
   },
   "packageFolders": {
-    "/home/toggian/.nuget/packages/": {}
+    "C:\\Users\\chris\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/toggian/AI-spotter/AI/OlympicAi/Backend/AI-spotter.csproj",
+      "projectUniqueName": "C:\\Users\\chris\\OneDrive\\Desktop\\Fritidsprojekt\\TempAISpotter\\AI\\OlympicAi\\backend\\AI-spotter.csproj",
       "projectName": "AI-spotter",
-      "projectPath": "/home/toggian/AI-spotter/AI/OlympicAi/Backend/AI-spotter.csproj",
-      "packagesPath": "/home/toggian/.nuget/packages/",
-      "outputPath": "/home/toggian/AI-spotter/AI/OlympicAi/Backend/obj/",
+      "projectPath": "C:\\Users\\chris\\OneDrive\\Desktop\\Fritidsprojekt\\TempAISpotter\\AI\\OlympicAi\\backend\\AI-spotter.csproj",
+      "packagesPath": "C:\\Users\\chris\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\chris\\OneDrive\\Desktop\\Fritidsprojekt\\TempAISpotter\\AI\\OlympicAi\\backend\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/home/toggian/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\chris\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
@@ -179,7 +179,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.302/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.303/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

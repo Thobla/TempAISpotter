@@ -1,6 +1,7 @@
 import os
 import time
 import cv2
+import json
 import numpy as np
 import mediapipe as mp
 from Utils.utils.utils import *
@@ -156,6 +157,7 @@ class MediaPipeVideoProcessor:
             raise NotImplementedError(f"Exercise '{exercise}' not implemented.")
 
         mp_pose = mp.solutions.pose
+        landmarks_data = []  # ✅ Collect landmarks per frame
         with mp_pose.Pose(
             static_image_mode=False,         # Use tracking across frames
             model_complexity=2,              # Use the most accurate model
@@ -171,6 +173,21 @@ class MediaPipeVideoProcessor:
 
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 results = pose.process(rgb_frame)
+                
+                if results.pose_landmarks:
+                    frame_landmarks = []
+                    for idx, lm in enumerate(results.pose_landmarks.landmark):
+                        frame_landmarks.append({
+                            "frame": int(cap.get(cv2.CAP_PROP_POS_FRAMES)),
+                            "id": idx,
+                            "x": lm.x,
+                            "y": lm.y,
+                            "z": lm.z,
+                            "visibility": lm.visibility
+                        })
+                    landmarks_data.append(frame_landmarks)
+
+                
                 # ✅ add counter update here
                 if results.pose_landmarks:
                     counter.update(results.pose_landmarks.landmark)
@@ -182,6 +199,20 @@ class MediaPipeVideoProcessor:
 
         cap.release()
         out.release()
+        
+        # ✅ Make sure the folder exists
+        os.makedirs("MediaPipe_landmarks", exist_ok=True)
+
+        # ✅ Create path using the same base filename as the video
+        base_name = os.path.splitext(os.path.basename(output_path))[0]
+        json_output_path = os.path.join("AI/MediaPipe_landmarks", base_name + "_landmarks.json")
+
+        # ✅ Save JSON
+        with open(json_output_path, "w") as f:
+            json.dump(landmarks_data, f, indent=2)
+
+        print(f"Landmarks saved to {json_output_path}")
+        
         print(f"Video processed and saved to {output_path}")
 
         # ✅ return verdict with counter results

@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "kObxnOTKXpE=",
+  "dgSpecHash": "CQA/DbQg7Fg=",
   "success": true,
-  "projectFilePath": "/home/toggian/AI-spotter/AI/OlympicAi/Backend/AI-spotter.csproj",
+  "projectFilePath": "C:\\Users\\chris\\OneDrive\\Desktop\\Fritidsprojekt\\TempAISpotter\\AI\\OlympicAi\\backend\\AI-spotter.csproj",
   "expectedPackageFiles": [
-    "/home/toggian/.nuget/packages/microsoft.aspnetcore.openapi/9.0.7/microsoft.aspnetcore.openapi.9.0.7.nupkg.sha512",
-    "/home/toggian/.nuget/packages/microsoft.openapi/1.6.17/microsoft.openapi.1.6.17.nupkg.sha512",
-    "/home/toggian/.nuget/packages/scalar.aspnetcore/2.6.1/scalar.aspnetcore.2.6.1.nupkg.sha512"
+    "C:\\Users\\chris\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.7\\microsoft.aspnetcore.openapi.9.0.7.nupkg.sha512",
+    "C:\\Users\\chris\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512",
+    "C:\\Users\\chris\\.nuget\\packages\\scalar.aspnetcore\\2.6.1\\scalar.aspnetcore.2.6.1.nupkg.sha512"
   ],
   "logs": []
 }
